@@ -1,11 +1,12 @@
 const express = require("express");
 const db = require("../models/db");
+const { verifytoken } = require("../middleware/auth");
 
 
 module.exports = (router) => {
   
 // GET /mahasiswa
-router.get("/mahasiswa", (req, res) => {
+router.get("/mahasiswa", verifytoken, (req, res) => {
   // res.send('hello word')
   db.query("SELECT a.*, b.name as class_name, b.room, b.kaprodi FROM mahasiswa a LEFT JOIN class b ON a.class_id = b.id", (error, result) => {
     if (error) {
@@ -18,7 +19,15 @@ router.get("/mahasiswa", (req, res) => {
 });
 
 // GET /mahasiswa/:nim
-router.get("/mahasiswa/:nim", (req, res) => {
+router.get("/mahasiswa/:nim", verifytoken, (req, res) => {
+  const schema = Joi.object({
+    nim: Joi.required(),
+  });
+  const {error} = schema.validate(req.params);
+  if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+  }
+
   const mahasiswaId = req.params.nim;
   db.query(
     "SELECT a.*, b.name as class_name, b.room, b.kaprodi FROM mahasiswa a LEFT JOIN class b ON a.class_id = b.id WHERE nim = ?",
@@ -37,13 +46,26 @@ router.get("/mahasiswa/:nim", (req, res) => {
 });
 
 // PUT /mahasiswa/:nim
-router.put("/mahasiswa/:nim", (req, res) => {
+router.put("/mahasiswa/:nim", verifytoken, (req, res) => {
+  const schema = Joi.object({
+    class_id: Joi.required(),
+    nama : Joi.string().required(),
+    gender : Joi.string().required(),
+    prodi : Joi.string().required(),
+    alamat : Joi.string().required(),
+    nim : Joi.string().required(),
+  });
+  const {error} = schema.validate({...req.body, ...req.params});
+  if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+  }
+
   const mahasiswaNim = req.params.nim;
-  const { nama, gender, alamat, class_id } = req.body;
+  const { nama, gender, prodi, alamat, class_id } = req.body;
   console.log(req.body)
   db.query(
-    "UPDATE mahasiswa SET nama = ?, gender = ?, alamat = ?, class_id = ? WHERE nim = ?",
-    [nama, gender, alamat, class_id ,mahasiswaNim],
+    "UPDATE mahasiswa SET nama = ?, gender = ?, alamat = ?, class_id = ?, prodi = ? WHERE nim = ?",
+    [nama, gender, alamat, class_id, prodi ,mahasiswaNim],
     (error) => {
       if (error) {
         console.error("Error updating mahasiswa:", error);
@@ -56,7 +78,20 @@ router.put("/mahasiswa/:nim", (req, res) => {
 });
 
 // PUT /mahasiswa/:nim
-router.post("/mahasiswa", (req, res) => {
+router.post("/mahasiswa", verifytoken, (req, res) => {
+  const schema = Joi.object({
+    class_id: Joi.required(),
+    nama : Joi.string().required(),
+    gender : Joi.string().required(),
+    prodi : Joi.string().required(),
+    alamat : Joi.string().required(),
+    nim : Joi.string().required(),
+  });
+  const {error} = schema.validate({...req.body, ...req.params});
+  if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+  }
+
   const { nama, gender, prodi, alamat, nim, class_id } = req.body;
   console.log(req.body)
   db.query(
@@ -74,7 +109,15 @@ router.post("/mahasiswa", (req, res) => {
 });
 
 // PUT /mahasiswa/:nim
-router.delete("/mahasiswa/:nim", (req, res) => {
+router.delete("/mahasiswa/:nim", verifytoken, (req, res) => {
+  const schema = Joi.object({
+    nim: Joi.required(),
+  });
+  const {error} = schema.validate(req.params);
+  if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+  }
+
   const mahasiswaNim = req.params.nim;
   db.query(
     "DELETE FROM mahasiswa WHERE nim = ?",

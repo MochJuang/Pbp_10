@@ -5,6 +5,7 @@ const bodyParser = require('body-parser')
 const app = express()
 const responseTime = require('response-time')
 const router = express.Router();
+const { verifytoken } = require('./middleware/auth')
 
 let corsOption = {
     origin: (origin, callback) => {
@@ -40,6 +41,7 @@ app.use(responseTime(function(req, res, time) {
     console.log(req.url)
 }))
 
+require('./controllers/authController')(router)
 require('./controllers/studentController')(router)
 require('./controllers/classController')(router)
 app.use(router)

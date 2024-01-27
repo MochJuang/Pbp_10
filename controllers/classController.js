@@ -1,11 +1,13 @@
 const express = require("express");
 const db = require("../models/db");
+const { verifytoken } = require("../middleware/auth");
+const Joi = require('joi')
 
 module.exports = (router) => {
 
 // GET /class
-router.get("/class", (req, res) => {
-    // res.send('hello word')
+router.get("/class", verifytoken, (req, res) => {
+
     db.query("SELECT * FROM class", (error, result) => {
       if (error) {
         console.error("error fetching class:", error);
@@ -17,11 +19,19 @@ router.get("/class", (req, res) => {
   });
   
   // GET /class/:id
-  router.get("/class/:id", (req, res) => {
+  router.get("/class/:id", verifytoken, (req, res) => {
+    const schema = Joi.object({
+        id: Joi.required(),
+    });
+    const {error} = schema.validate(req.params);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+
     const classId = req.params.id;
     db.query(
       "SELECT * FROM class WHERE id = ?",
-      [classId],
+      [req.params.id],
       (error, results) => {
         if (error) {
           console.error("Error fetching class:", error);
@@ -36,7 +46,19 @@ router.get("/class", (req, res) => {
   });
   
   // PUT /class/:id
-  router.put("/class/:id", (req, res) => {
+  router.put("/class/:id", verifytoken, (req, res) => {
+    const schema = Joi.object({
+        id: Joi.required(),
+        name: Joi.string().required(),
+        room: Joi.string().required(),
+        kaprodi: Joi.string().required(),
+    });
+    const {error} = schema.validate({...req.body, ...req.params});
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+
+
     const classId = req.params.id;
     const { name, room, kaprodi} = req.body;
     console.log(req.body)
@@ -55,7 +77,17 @@ router.get("/class", (req, res) => {
   });
   
   // PUT /class/:id
-  router.post("/class", (req, res) => {
+  router.post("/class", verifytoken, (req, res) => {
+    const schema = Joi.object({
+        name: Joi.string().required(),
+        room: Joi.string().required(),
+        kaprodi: Joi.string().required(),
+    });
+    const {error} = schema.validate({...req.body, ...req.params});
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+
     const { name, room, kaprodi } = req.body;
     console.log(req.body)
     db.query(
@@ -73,7 +105,15 @@ router.get("/class", (req, res) => {
   });
   
   // PUT /class/:id
-  router.delete("/class/:id", (req, res) => {
+  router.delete("/class/:id", verifytoken, (req, res) => {
+    const schema = Joi.object({
+        id: Joi.required(),
+    });
+    const {error} = schema.validate(req.params);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+
     const classId = req.params.id;
     db.query(
       "DELETE FROM class WHERE id = ?",
