@@ -1,10 +1,13 @@
 const express = require("express");
-const router = express.Router();
 const db = require("../models/db");
 
+
+module.exports = (router) => {
+  
 // GET /mahasiswa
-router.get("/", (req, res) => {
-  db.query("SELECT * FROM mahasiswa", (error, result) => {
+router.get("/mahasiswa", (req, res) => {
+  // res.send('hello word')
+  db.query("SELECT a.*, b.name as class_name, b.room, b.kaprodi FROM mahasiswa a LEFT JOIN class b ON a.class_id = b.id", (error, result) => {
     if (error) {
       console.error("error fetching mahasiswa:", error);
       res.status(500).json({ message: "Internal Server Error" });
@@ -15,10 +18,10 @@ router.get("/", (req, res) => {
 });
 
 // GET /mahasiswa/:nim
-router.get("/:nim", (req, res) => {
+router.get("/mahasiswa/:nim", (req, res) => {
   const mahasiswaId = req.params.nim;
   db.query(
-    "SELECT * FROM mahasiswa WHERE nim = ?",
+    "SELECT a.*, b.name as class_name, b.room, b.kaprodi FROM mahasiswa a LEFT JOIN class b ON a.class_id = b.id WHERE nim = ?",
     [mahasiswaId],
     (error, results) => {
       if (error) {
@@ -34,13 +37,13 @@ router.get("/:nim", (req, res) => {
 });
 
 // PUT /mahasiswa/:nim
-router.put("/:nim", (req, res) => {
+router.put("/mahasiswa/:nim", (req, res) => {
   const mahasiswaNim = req.params.nim;
-  const { nama, gender, prodi, alamat } = req.body;
+  const { nama, gender, alamat, class_id } = req.body;
   console.log(req.body)
   db.query(
-    "UPDATE mahasiswa SET nama = ?, gender = ?, prodi = ?, alamat = ? WHERE nim = ?",
-    [nama, gender, prodi, alamat, mahasiswaNim],
+    "UPDATE mahasiswa SET nama = ?, gender = ?, alamat = ?, class_id = ? WHERE nim = ?",
+    [nama, gender, alamat, class_id ,mahasiswaNim],
     (error) => {
       if (error) {
         console.error("Error updating mahasiswa:", error);
@@ -53,12 +56,12 @@ router.put("/:nim", (req, res) => {
 });
 
 // PUT /mahasiswa/:nim
-router.post("/", (req, res) => {
-  const { nama, gender, prodi, alamat, nim } = req.body;
+router.post("/mahasiswa", (req, res) => {
+  const { nama, gender, prodi, alamat, nim, class_id } = req.body;
   console.log(req.body)
   db.query(
-    "INSERT mahasiswa values (?,?,?,?,?)",
-    [nim,nama, gender, prodi, alamat],
+    "INSERT mahasiswa values (?,?,?,?,?,?)",
+    [nim,nama, gender, prodi, alamat, class_id],
     (error) => {
       if (error) {
         console.error("Error creating mahasiswa:", error);
@@ -70,4 +73,20 @@ router.post("/", (req, res) => {
   );
 });
 
-module.exports = router;
+// PUT /mahasiswa/:nim
+router.delete("/mahasiswa/:nim", (req, res) => {
+  const mahasiswaNim = req.params.nim;
+  db.query(
+    "DELETE FROM mahasiswa WHERE nim = ?",
+    [mahasiswaNim],
+    (error) => {
+      if (error) {
+        console.error("Error delete mahasiswa:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+      } else {
+        res.json({ message: "Deleted mahasiswa successfully" });
+      }
+    }
+  );
+});
+};

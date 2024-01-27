@@ -4,6 +4,7 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const app = express()
 const responseTime = require('response-time')
+const router = express.Router();
 
 let corsOption = {
     origin: (origin, callback) => {
@@ -39,7 +40,8 @@ app.use(responseTime(function(req, res, time) {
     console.log(req.url)
 }))
 
-let router = require('./controllers/studentController')
+require('./controllers/studentController')(router)
+require('./controllers/classController')(router)
 app.use(router)
 
 app.listen(PORT, () => console.log('server running on port http://localhost:' + PORT))
